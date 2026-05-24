@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-notion-border dark:border-notion-border-dark;
+  }
+  body {
+    @apply antialiased bg-notion-bg text-notion-text dark:bg-notion-bg-dark dark:text-notion-text-dark;
+  }
+  :root {
+    --scrollbar-track: #EFEFEF;
+    --scrollbar-thumb: #D1D1D1;
+  }
+  .dark {
+    --scrollbar-track: #2E2E2E;
+    --scrollbar-thumb: #555;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb);
+  }
+}
+
+@layer components {
+  .btn-notion {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2
+           text-sm font-medium leading-none
+           transition-all duration-150
+           hover:bg-notion-hover dark:hover:bg-notion-hover-dark
+           focus:outline-none disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-notion-primary {
+    @apply btn-notion bg-notion-text text-notion-bg
+           hover:bg-notion-text/90
+           dark:bg-notion-text-dark dark:text-notion-bg-dark
+           dark:hover:bg-notion-text-dark/90;
+  }
+  .input-notion {
+    @apply w-full rounded-lg border bg-transparent px-4 py-3
+           text-base placeholder-notion-muted
+           transition-colors duration-150
+           focus:border-notion-text focus:outline-none
+           dark:placeholder-notion-muted-dark
+           dark:focus:border-notion-text-dark;
+  }
+  .card-notion {
+    @apply bg-notion-card rounded-lg shadow-notion-card
+           dark:bg-notion-card-dark;
+  }
+}
+
