@@ -9,6 +9,11 @@ from .models import EncryptedNote
 from .serializers import EncryptedNoteSerializer
 
 
+class HealthCheck(APIView):
+    def get(self, request):
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+
 class NoteAPIView(APIView):
     def get(self, request, note_path):
         try:
