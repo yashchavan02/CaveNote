@@ -29,7 +29,7 @@ export default function Landing() {
 
       <main className="flex flex-1 flex-col lg:justify-center">
         <div className="mx-auto w-full max-w-notion px-6 lg:px-12">
-          <section className="pt-16 pb-10 lg:pt-0 lg:pb-6">
+          <section className="pt-10 sm:pt-16 pb-10 lg:pt-0 lg:pb-6">
             <div className="max-w-3xl">
               <h1 className="text-4xl sm:text-5xl lg:text-notion-hero font-bold tracking-tight leading-none">
                 Encrypted notes.<br />No accounts.
@@ -38,17 +38,17 @@ export default function Landing() {
                 CaveNote encrypts everything in your browser with AES-256-GCM.
                 The server stores only encrypted garbage. Zero knowledge, zero compromises.
               </p>
-              <form onSubmit={handleSubmit} className="mt-8 max-w-md">
+              <form onSubmit={handleSubmit} className="mt-8 max-w-full sm:max-w-md">
                 <div className="flex items-stretch rounded-lg border border-gray-300 overflow-hidden focus-within:border-notion-text dark:border-gray-600 dark:focus-within:border-notion-text-dark transition-colors duration-150">
                   <input
                     type="text"
-                    className="flex-1 bg-transparent px-4 py-3 text-base tracking-tight placeholder-notion-muted outline-none dark:placeholder-notion-muted-dark"
+                    className="min-w-0 flex-1 bg-transparent px-4 py-3 text-base tracking-tight placeholder-notion-muted outline-none dark:placeholder-notion-muted-dark"
                     placeholder="Enter note name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoFocus
                   />
-                  <button type="submit" className="px-5 py-3 text-sm font-medium bg-notion-text text-notion-bg hover:bg-notion-text/90 dark:bg-notion-text-dark dark:text-notion-bg-dark dark:hover:bg-notion-text-dark/90 transition-colors whitespace-nowrap">
+                  <button type="submit" className="px-4 sm:px-5 py-3 text-sm font-medium bg-notion-text text-notion-bg hover:bg-notion-text/90 dark:bg-notion-text-dark dark:text-notion-bg-dark dark:hover:bg-notion-text-dark/90 transition-colors whitespace-nowrap">
                     Open note
                   </button>
                 </div>

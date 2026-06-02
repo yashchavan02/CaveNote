@@ -18,44 +18,43 @@ export default function TopBar({ noteName, status, onLock, onDelete, onSave, pas
 
   const actions = (
     <>
-      {status === 'saved' && (
-        <span className="text-sm text-notion-muted dark:text-notion-muted-dark mr-2">Saved</span>
-      )}
-      {status === 'unsaved' && (
-        <span className="text-sm text-notion-muted dark:text-notion-muted-dark mr-2">Unsaved</span>
+      {status !== 'saved' && status !== 'unsaved' ? null : (
+        <span className="text-xs text-notion-muted dark:text-notion-muted-dark mr-2 max-sm:hidden">
+          {status === 'saved' ? 'Saved' : 'Unsaved'}
+        </span>
       )}
 
-      <div className="flex items-center rounded-lg border border-notion-border dark:border-notion-border-dark overflow-hidden mr-1">
-        <button onClick={decrease} disabled={size <= MIN} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Decrease font size">
+      <div className="flex items-center rounded-lg border border-notion-border dark:border-notion-border-dark overflow-hidden mr-1 max-sm:mr-0.5">
+        <button onClick={decrease} disabled={size <= MIN} className="flex items-center justify-center w-7 h-7 max-sm:w-6 max-sm:h-6 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Decrease font size">
           <Minus className="h-3.5 w-3.5" />
         </button>
-        <span className="flex items-center justify-center w-7 h-7 text-[11px] font-medium text-notion-muted dark:text-notion-muted-dark select-none border-x border-notion-border dark:border-notion-border-dark">{size}</span>
-        <button onClick={increase} disabled={size >= MAX} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Increase font size">
+        <span className="flex items-center justify-center w-7 h-7 max-sm:w-6 max-sm:h-6 text-[11px] font-medium text-notion-muted dark:text-notion-muted-dark select-none border-x border-notion-border dark:border-notion-border-dark">{size}</span>
+        <button onClick={increase} disabled={size >= MAX} className="flex items-center justify-center w-7 h-7 max-sm:w-6 max-sm:h-6 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Increase font size">
           <Plus className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <button onClick={onToggleBold} className={`btn-notion p-2.5 ${bold ? 'bg-notion-hover dark:bg-notion-hover-dark' : ''}`} title="Bold">
-        <Bold className="h-5 w-5" />
+      <button onClick={onToggleBold} className={`btn-notion p-2.5 max-sm:p-2 ${bold ? 'bg-notion-hover dark:bg-notion-hover-dark' : ''}`} title="Bold">
+        <Bold className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
       </button>
-      <button onClick={handleCopyContent} className="btn-notion p-2.5" title="Copy note content">
-        {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+      <button onClick={handleCopyContent} className="btn-notion p-2.5 max-sm:p-2" title="Copy note content">
+        {copied ? <Check className="h-5 w-5 max-sm:h-4 max-sm:w-4" /> : <Copy className="h-5 w-5 max-sm:h-4 max-sm:w-4" />}
       </button>
-      <button onClick={onSave} className="btn-notion p-2.5" title="Save (Ctrl+S)">
-        <Save className="h-5 w-5" />
+      <button onClick={onSave} className="btn-notion p-2.5 max-sm:p-2" title="Save (Ctrl+S)">
+        <Save className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
       </button>
       {password && (
         <>
-          <button onClick={onChangePassword} className="btn-notion p-2.5" title="Change password">
-            <KeyRound className="h-5 w-5" />
+          <button onClick={onChangePassword} className="btn-notion p-2.5 max-sm:p-2" title="Change password">
+            <KeyRound className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
           </button>
-          <button onClick={onLock} className="btn-notion p-2.5" title="Lock">
-            <Lock className="h-5 w-5" />
+          <button onClick={onLock} className="btn-notion p-2.5 max-sm:p-2" title="Lock">
+            <Lock className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
           </button>
         </>
       )}
-      <button onClick={() => setShowDelete(!showDelete)} className="btn-notion p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete">
-        <Trash2 className="h-5 w-5 text-red-500" />
+      <button onClick={() => setShowDelete(!showDelete)} className="btn-notion p-2.5 max-sm:p-2 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete">
+        <Trash2 className="h-5 w-5 max-sm:h-4 max-sm:w-4 text-red-500" />
       </button>
     </>
   )
@@ -73,7 +72,7 @@ export default function TopBar({ noteName, status, onLock, onDelete, onSave, pas
               {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
           </div>
-          <div className="flex items-center justify-end gap-1 pb-3 pt-1 md:hidden overflow-x-auto">
+          <div className="flex items-center justify-end gap-1 max-sm:gap-0.5 pb-3 pt-1 md:hidden overflow-x-auto">
             {actions}
           </div>
 

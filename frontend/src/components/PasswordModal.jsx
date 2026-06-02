@@ -31,7 +31,7 @@ export default function PasswordModal({ mode, onSubmit, error, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-sm bg-notion-card rounded-lg border shadow-notion-modal dark:bg-notion-card-dark">
-        <div className="p-7 pb-6">
+        <div className="p-5 sm:p-7 pb-6">
           <h2 className="text-lg font-semibold tracking-tight">{cfg.title}</h2>
           <p className="mt-1.5 text-sm text-notion-muted dark:text-notion-muted-dark leading-snug">{cfg.help}</p>
 
@@ -57,7 +57,7 @@ export default function PasswordModal({ mode, onSubmit, error, onClose }) {
           </form>
         </div>
 
-        <div className="border-t px-7 py-4 dark:border-notion-border-dark">
+        <div className="border-t px-5 sm:px-7 py-4 dark:border-notion-border-dark">
           <p className="text-xs text-notion-muted dark:text-notion-muted-dark">
             Your password never leaves your browser.
           </p>

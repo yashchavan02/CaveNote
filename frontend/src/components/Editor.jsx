@@ -107,7 +107,7 @@ export default function Editor() {
 
           {!locked && (
             <textarea
-              className="w-full flex-1 resize-none border-0 bg-transparent py-10 font-mono leading-relaxed outline-none placeholder-notion-muted/50 dark:placeholder-notion-muted-dark/50"
+              className="w-full flex-1 resize-none border-0 bg-transparent py-6 sm:py-10 font-mono leading-relaxed outline-none placeholder-notion-muted/50 dark:placeholder-notion-muted-dark/50"
               style={{ fontSize: `${size}px`, fontWeight: bold ? 700 : 400 }}
               placeholder="Start typing..."
               value={plaintext}
