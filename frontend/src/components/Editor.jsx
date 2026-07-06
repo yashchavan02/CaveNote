@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNote } from '../hooks/useNote'
 import { useFontSizeStore } from '../hooks/useFontSize'
 import PasswordModal from './PasswordModal'
@@ -7,6 +7,7 @@ import TopBar from './TopBar'
 export default function Editor() {
   const { size } = useFontSizeStore()
   const [bold, setBold] = useState(false)
+  const textareaRef = useRef(null)
   const {
     noteName,
     plaintext,
@@ -52,6 +53,20 @@ export default function Editor() {
     }
   }, [locked, handleSave])
 
+  const handleInsertHR = () => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const text = plaintext
+    const insertion = '\n---\n'
+    const newText = text.slice(0, start) + insertion + text.slice(textarea.selectionEnd)
+    setPlaintext(newText)
+    requestAnimationFrame(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + insertion.length
+      textarea.focus()
+    })
+  }
+
   const showLoading = locked && exists === null
   const showDecryptModal = locked && exists === true
 
@@ -69,6 +84,7 @@ export default function Editor() {
         onToggleBold={() => setBold((b) => !b)}
         plaintext={plaintext}
         onChangePassword={() => setShowChangePassword(true)}
+        onInsertHR={handleInsertHR}
       />
 
       {showSavePrompt && (
@@ -107,6 +123,7 @@ export default function Editor() {
 
           {!locked && (
             <textarea
+              ref={textareaRef}
               className="w-full flex-1 resize-none border-0 bg-transparent py-6 sm:py-10 font-mono leading-relaxed outline-none placeholder-notion-muted/50 dark:placeholder-notion-muted-dark/50"
               style={{ fontSize: `${size}px`, fontWeight: bold ? 700 : 400 }}
               placeholder="Start typing..."
