@@ -58,7 +58,7 @@ export default function Editor() {
     if (!textarea) return
     const start = textarea.selectionStart
     const text = plaintext
-    const insertion = '\n----------------\n'
+    const insertion = '\n----------------------------------------\n'
     const newText = text.slice(0, start) + insertion + text.slice(textarea.selectionEnd)
     setPlaintext(newText)
     requestAnimationFrame(() => {
