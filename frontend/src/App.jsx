@@ -1,9 +1,15 @@
 import { useEffect, lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useThemeStore } from './hooks/useTheme'
 import Landing from './components/Landing'
 
 const Editor = lazy(() => import('./components/Editor'))
+
+function Home() {
+  const location = useLocation()
+  if (location.state?.decodedView) return <Editor />
+  return <Landing />
+}
 
 function Spinner() {
   return (
@@ -24,7 +30,7 @@ export default function App() {
     <div className="flex min-h-screen flex-col">
       <Suspense fallback={<Spinner />}>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<Home />} />
           <Route path="/:noteName" element={<Editor />} />
         </Routes>
       </Suspense>

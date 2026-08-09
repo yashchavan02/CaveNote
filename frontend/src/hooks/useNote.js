@@ -32,6 +32,12 @@ export function useNote() {
           if (err.response?.status === 404) {
             setExists(false)
             setLocked(false)
+            const prefill = localStorage.getItem('cavenote-prefill')
+            if (prefill) {
+              localStorage.removeItem('cavenote-prefill')
+              setPlaintext(prefill)
+              setStatus('unsaved')
+            }
           }
         }
       }
@@ -72,9 +78,11 @@ export function useNote() {
       setExists(true)
       setShowSavePrompt(false)
       setStatus('saved')
+      return true
     } catch {
       setStatus('error')
       setError('Failed to save')
+      return false
     }
   }, [plaintext, noteName])
 

@@ -1,12 +1,24 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Moon, Copy, Check, Minus, Plus, ArrowLeft } from 'lucide-react'
 import { useNote } from '../hooks/useNote'
 import { useFontSizeStore } from '../hooks/useFontSize'
+import { useThemeStore } from '../hooks/useTheme'
 import PasswordModal from './PasswordModal'
 import TopBar from './TopBar'
+import SteganoModal from './SteganoModal'
 
 export default function Editor() {
-  const { size } = useFontSizeStore()
+  const { size, increase, decrease, MIN, MAX } = useFontSizeStore()
+  const { dark, toggle } = useThemeStore()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const decodedView = location.state?.decodedView
+  const decodedText = location.state?.decodedText
+  const [decodedCopied, setDecodedCopied] = useState(false)
   const [bold, setBold] = useState(false)
+  const [showStegano, setShowStegano] = useState(false)
+  const pendingSteganoRef = useRef(false)
   const textareaRef = useRef(null)
   const {
     noteName,
@@ -53,22 +65,74 @@ export default function Editor() {
     }
   }, [locked, handleSave])
 
-  const handleInsertHR = () => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const text = plaintext
-    const insertion = '\n----------------------------------------\n'
-    const newText = text.slice(0, start) + insertion + text.slice(textarea.selectionEnd)
-    setPlaintext(newText)
-    requestAnimationFrame(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + insertion.length
-      textarea.focus()
-    })
+  const handleStegano = () => {
+    if (!plaintext.trim()) return
+    if (!password) {
+      pendingSteganoRef.current = true
+      setShowSavePrompt(true)
+    } else {
+      setShowStegano(true)
+    }
   }
 
   const showLoading = locked && exists === null
   const showDecryptModal = locked && exists === true
+
+  if (decodedView) {
+    return (
+      <>
+        <header className="border-b bg-notion-bg dark:bg-notion-bg-dark dark:border-notion-border-dark">
+          <div className="mx-auto flex w-full max-w-notion items-center justify-between px-6 lg:px-12 py-3">
+            <button
+              onClick={() => navigate('/', { replace: true, state: {} })}
+              className="btn-notion px-3 py-2.5 gap-2"
+              title="Home"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm font-medium">Home</span>
+            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(decodedText || '')
+                  setDecodedCopied(true)
+                  setTimeout(() => setDecodedCopied(false), 2000)
+                }}
+                className="btn-notion px-3 py-2.5 gap-1.5"
+                title="Copy decrypted note"
+              >
+                {decodedCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <span className="hidden sm:inline text-sm">{decodedCopied ? 'Copied' : 'Copy'}</span>
+              </button>
+              <div className="flex items-center rounded-lg border border-notion-border dark:border-notion-border-dark overflow-hidden">
+                <button onClick={decrease} disabled={size <= MIN} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Decrease font size">
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="flex items-center justify-center w-7 h-7 text-[11px] font-medium text-notion-muted dark:text-notion-muted-dark select-none border-x border-notion-border dark:border-notion-border-dark">{size}</span>
+                <button onClick={increase} disabled={size >= MAX} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Increase font size">
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="mx-2 h-6 w-px bg-notion-border dark:bg-notion-border-dark" />
+              <button onClick={toggle} className="btn-notion p-2.5" title="Toggle theme">
+                {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col">
+          <div className="mx-auto flex w-full max-w-notion flex-1 flex-col px-6 lg:px-12">
+            <textarea
+              readOnly
+              value={decodedText}
+              className="w-full flex-1 resize-none border-0 bg-transparent py-6 sm:py-10 font-mono leading-relaxed outline-none"
+              style={{ fontSize: `${size}px` }}
+            />
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -84,15 +148,24 @@ export default function Editor() {
         onToggleBold={() => setBold((b) => !b)}
         plaintext={plaintext}
         onChangePassword={() => setShowChangePassword(true)}
-        onInsertHR={handleInsertHR}
+        onStegano={handleStegano}
       />
 
       {showSavePrompt && (
         <PasswordModal
           mode="save"
-          onSubmit={saveEncrypted}
+          onSubmit={async (pw) => {
+            const saved = await saveEncrypted(pw)
+            if (saved && pendingSteganoRef.current) {
+              pendingSteganoRef.current = false
+              setShowStegano(true)
+            }
+          }}
           error={error}
-          onClose={() => setShowSavePrompt(false)}
+          onClose={() => {
+            pendingSteganoRef.current = false
+            setShowSavePrompt(false)
+          }}
         />
       )}
 
@@ -112,6 +185,14 @@ export default function Editor() {
           onClose={() => setShowChangePassword(false)}
         />
       )}
+
+      <SteganoModal
+        open={showStegano}
+        onClose={() => setShowStegano(false)}
+        plaintext={plaintext}
+        password={password}
+        noteName={noteName}
+      />
 
       <main className="flex flex-1 flex-col">
         <div className="mx-auto flex w-full max-w-notion flex-1 flex-col px-6 lg:px-12">

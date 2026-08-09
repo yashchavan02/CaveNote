@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Sun, Moon, Lock, Trash2, Copy, Check, Save, Minus, Plus, Bold, KeyRound, SeparatorHorizontal } from 'lucide-react'
+import { Sun, Moon, Lock, Trash2, Copy, Check, Save, Minus, Plus, Bold, KeyRound, Image } from 'lucide-react'
 import { useThemeStore } from '../hooks/useTheme'
 import { useFontSizeStore } from '../hooks/useFontSize'
 
-export default function TopBar({ noteName, status, onLock, onDelete, onSave, password, charCount, bold, onToggleBold, onInsertHR, plaintext, onChangePassword }) {
+export default function TopBar({ noteName, status, onLock, onDelete, onSave, password, charCount, bold, onToggleBold, plaintext, onChangePassword, onStegano }) {
   const { dark, toggle } = useThemeStore()
   const { size, increase, decrease, MIN, MAX } = useFontSizeStore()
   const [showDelete, setShowDelete] = useState(false)
@@ -37,11 +37,17 @@ export default function TopBar({ noteName, status, onLock, onDelete, onSave, pas
       <button onClick={onToggleBold} className={`btn-notion p-2.5 max-sm:p-2 ${bold ? 'bg-notion-hover dark:bg-notion-hover-dark' : ''}`} title="Bold">
         <Bold className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
       </button>
-      <button onClick={onInsertHR} className="btn-notion p-2.5 max-sm:p-2" title="Insert horizontal rule (---)">
-        <SeparatorHorizontal className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
-      </button>
       <button onClick={handleCopyContent} className="btn-notion p-2.5 max-sm:p-2" title="Copy note content">
         {copied ? <Check className="h-5 w-5 max-sm:h-4 max-sm:w-4" /> : <Copy className="h-5 w-5 max-sm:h-4 max-sm:w-4" />}
+      </button>
+      <button
+        onClick={onStegano}
+        disabled={!plaintext}
+        className="btn-notion px-3 py-2.5 max-sm:p-2 gap-1.5"
+        title="Generate steganographic image from this note"
+      >
+        <Image className="h-5 w-5 max-sm:h-4 max-sm:w-4" />
+        <span className="hidden sm:inline text-sm">Stegano</span>
       </button>
       <button onClick={onSave} className="btn-notion p-2.5 max-sm:p-2" title="Save (Ctrl+S)">
         <Save className="h-5 w-5 max-sm:h-4 max-sm:w-4" />

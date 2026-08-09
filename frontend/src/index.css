@@ -12,6 +12,7 @@
   :root {
     --scrollbar-track: #EFEFEF;
     --scrollbar-thumb: #D1D1D1;
+    scroll-behavior: smooth;
   }
   .dark {
     --scrollbar-track: #2E2E2E;
@@ -60,8 +61,19 @@
            dark:focus:border-notion-text-dark;
   }
   .card-notion {
-    @apply bg-notion-card rounded-lg shadow-notion-card
-           dark:bg-notion-card-dark;
+    @apply bg-notion-card rounded-lg dark:bg-notion-card-dark;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
+}
+
+/* Tailwind's shadow utilities rewrite shadow colors via --tw-shadow-color
+   and fall back to white, producing a glow in dark mode. Define shadows
+   explicitly (unlayered, so they win over @layer utilities). */
+.shadow-notion-modal {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.feature-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
