@@ -1,24 +1,39 @@
-import axios from 'axios'
+import { supabase } from './supabaseClient'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-  headers: { 'Content-Type': 'application/json' },
-})
+const TABLE = 'encrypted_notes'
+
+const notFoundError = () => {
+  const err = new Error('Note not found')
+  err.code = 'PGRST116'
+  return err
+}
 
 export async function getNote(noteId) {
-  const { data } = await api.get(`/notes/${encodeURIComponent(noteId)}/`)
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('ciphertext, iv, salt')
+    .eq('note_path', noteId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) throw notFoundError()
   return data
 }
 
 export async function saveNote(noteId, payload) {
-  const { data } = await api.post(`/notes/${encodeURIComponent(noteId)}/`, payload)
-  return data
+  const { error } = await supabase
+    .from(TABLE)
+    .upsert(
+      { note_path: noteId, ciphertext: payload.ciphertext, iv: payload.iv, salt: payload.salt },
+      { onConflict: 'note_path' }
+    )
+  if (error) throw error
+  return { status: 'saved' }
 }
 
 export async function deleteNote(noteId) {
-  try {
-    await api.delete(`/notes/${encodeURIComponent(noteId)}/`)
-  } catch {
-    // ignore — note may not exist on server
+  const { error } = await supabase.from(TABLE).delete().eq('note_path', noteId)
+  if (error) {
+    console.error('Failed to delete note', error)
   }
 }

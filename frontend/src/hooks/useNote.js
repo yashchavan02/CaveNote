@@ -29,7 +29,7 @@ export function useNote() {
         }
       } catch (err) {
         if (!cancelled) {
-          if (err.response?.status === 404) {
+          if (err.code === 'PGRST116') {
             setExists(false)
             setLocked(false)
             const prefill = localStorage.getItem('cavenote-prefill')
