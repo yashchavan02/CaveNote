@@ -6,6 +6,9 @@
   * {
     @apply border-notion-border dark:border-notion-border-dark;
   }
+  html {
+    overflow-x: hidden;
+  }
   body {
     @apply antialiased bg-notion-bg text-notion-text dark:bg-notion-bg-dark dark:text-notion-text-dark;
     overflow-x: hidden;

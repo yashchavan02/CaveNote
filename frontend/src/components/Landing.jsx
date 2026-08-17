@@ -128,8 +128,8 @@ export default function Landing() {
       <main className="flex-1">
         {/* Hero */}
         <section id="open" className="scroll-mt-32 border-b dark:border-notion-border-dark">
-          <div className="mx-auto grid w-full max-w-notion gap-8 px-6 py-10 lg:grid-cols-2 lg:px-12 lg:gap-16 lg:py-20">
-            <div className="flex flex-col justify-center">
+          <div className="mx-auto grid w-full max-w-notion gap-8 px-6 py-10 lg:grid-cols-2 lg:px-12 lg:gap-16 lg:py-20 overflow-hidden">
+            <div className="flex flex-col justify-center min-w-0">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-notion-border px-3 py-1 text-xs font-medium text-notion-muted dark:border-notion-border-dark dark:text-notion-muted-dark">
                 <Lock className="h-3 w-3" />
                 Zero-knowledge encrypted notes
@@ -181,7 +181,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center min-w-0">
               {/* Decode tool card */}
               <div id="decode" className="card-notion border border-notion-border dark:border-notion-border-dark overflow-hidden scroll-mt-24">
                 <div className="flex items-center gap-2 border-b border-notion-border px-6 py-4 dark:border-notion-border-dark">
