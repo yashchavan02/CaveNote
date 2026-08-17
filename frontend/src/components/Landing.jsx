@@ -127,14 +127,14 @@ export default function Landing() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section id="open" className="scroll-mt-24 border-b dark:border-notion-border-dark">
-          <div className="mx-auto grid w-full max-w-notion gap-12 px-6 py-14 lg:py-20 lg:grid-cols-2 lg:px-12 lg:gap-16">
+        <section id="open" className="scroll-mt-32 border-b dark:border-notion-border-dark">
+          <div className="mx-auto grid w-full max-w-notion gap-8 px-6 py-10 lg:grid-cols-2 lg:px-12 lg:gap-16 lg:py-20">
             <div className="flex flex-col justify-center">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-notion-border px-3 py-1 text-xs font-medium text-notion-muted dark:border-notion-border-dark dark:text-notion-muted-dark">
                 <Lock className="h-3 w-3" />
                 Zero-knowledge encrypted notes
               </span>
-              <h1 className="mt-6 text-4xl sm:text-5xl font-bold tracking-tight leading-none lg:text-notion-h1">
+              <h1 className="mt-6 text-4xl sm:text-5xl font-bold tracking-tight leading-tight lg:text-notion-h1">
                 Encrypted notes.
                 <br />
                 No accounts.
@@ -187,7 +187,7 @@ export default function Landing() {
                 <div className="flex items-center gap-2 border-b border-notion-border px-6 py-4 dark:border-notion-border-dark">
                   <ImagePlus className="h-4 w-4 text-notion-muted dark:text-notion-muted-dark" />
                   <h2 className="text-sm font-semibold tracking-tight">Decode a hidden note</h2>
-                  <span className="ml-auto text-[11px] text-notion-muted dark:text-notion-muted-dark">PNG recommended</span>
+                  <span className="ml-auto hidden sm:inline text-[11px] text-notion-muted dark:text-notion-muted-dark">PNG recommended</span>
                 </div>
                 <div className="p-6">
                   {decodeState === 'idle' && (
