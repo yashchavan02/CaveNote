@@ -195,7 +195,7 @@ export default function Landing() {
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
-                      className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
+                      className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${
                         isDragging
                           ? 'border-notion-text dark:border-notion-text-dark bg-notion-hover dark:bg-notion-hover-dark'
                           : 'border-notion-border dark:border-notion-border-dark hover:bg-notion-hover dark:hover:bg-notion-hover-dark'
@@ -302,7 +302,7 @@ export default function Landing() {
 
         {/* Features */}
         <section id="features" className="scroll-mt-24 border-b dark:border-notion-border-dark">
-          <div className="mx-auto w-full max-w-notion px-6 lg:px-12 py-notion-section">
+          <div className="mx-auto w-full max-w-notion px-6 lg:px-12 py-16 lg:py-notion-section">
             <div className="max-w-2xl">
               <h2 className="text-3xl font-bold tracking-tight lg:text-notion-h2">
                 Built for privacy, designed for speed
@@ -347,7 +347,7 @@ export default function Landing() {
 
         {/* Security */}
         <section id="security" className="scroll-mt-24 border-b dark:border-notion-border-dark">
-          <div className="mx-auto w-full max-w-notion px-6 lg:px-12 py-notion-section text-center">
+          <div className="mx-auto w-full max-w-notion px-6 lg:px-12 py-16 lg:py-notion-section text-center">
             <ShieldCheck className="mx-auto h-9 w-9 text-notion-muted dark:text-notion-muted-dark" />
             <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-bold tracking-tight lg:text-notion-h2">
               Your notes are unreadable to anyone but you

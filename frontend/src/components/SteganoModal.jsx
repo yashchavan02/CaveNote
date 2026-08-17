@@ -16,6 +16,8 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
   const [error, setError] = useState('')
   const [meta, setMeta] = useState(null)
+  const [useDefaultPassword, setUseDefaultPassword] = useState(true)
+  const [stegoPassword, setStegoPassword] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -24,6 +26,8 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
       setImagePreviewUrl(null)
       setError('')
       setMeta(null)
+      setUseDefaultPassword(true)
+      setStegoPassword('')
     }
   }, [open])
 
@@ -37,10 +41,15 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
     setState('embedding')
     setError('')
     try {
-      if (!password || !password.trim()) {
-        throw new Error('A saved password is required to hide this note. Save the note first, then try again.')
+      const effectivePw = useDefaultPassword ? password : stegoPassword
+      if (!effectivePw || !effectivePw.trim()) {
+        throw new Error(
+          useDefaultPassword
+            ? 'Save the note first, then try again.'
+            : 'Enter a password for this image.'
+        )
       }
-      const ciphertext = await encryptStegano(plaintext, password)
+      const ciphertext = await encryptStegano(plaintext, effectivePw)
       const blob = await embedNoteInImage(imgEl, { ciphertext })
 
       const verifyUrl = URL.createObjectURL(blob)
@@ -52,10 +61,10 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
       }
       let decrypted
       try {
-        decrypted = await decryptStegano(extracted.ciphertext, password)
+        decrypted = await decryptStegano(extracted.ciphertext, effectivePw)
       } catch {
         throw new Error(
-          'Verification failed: the generated image could not be decoded. Try a different cover image.'
+          'Verification failed: the generated image could not be decoded. Try a different image.'
         )
       }
       if (decrypted !== plaintext) {
@@ -67,7 +76,7 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
       setMeta({ size: blob.size, noteLength: plaintext.length })
       setState('ready')
     } catch (err) {
-      setError(err.message || 'Failed to generate steganographic image')
+      setError(err.message || 'Failed to generate image')
       setState('error')
     }
   }
@@ -86,10 +95,11 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
 
   const handleDownload = () => {
     if (!imageBlob) return
+    const gibberish = Array.from({ length: 8 }, () => 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]).join('')
     const url = URL.createObjectURL(imageBlob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `cavenote-${noteName || 'note'}.png`
+    a.download = `cavenote-${gibberish}.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -106,23 +116,51 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
             <div className="p-5 sm:p-7 pb-6">
               <div className="flex items-center gap-2">
                 <Image className="h-5 w-5" />
-                <h2 className="text-lg font-semibold tracking-tight">Generate Steganographic Image</h2>
+                <h2 className="text-lg font-semibold tracking-tight">Hide Note in Image</h2>
               </div>
               <p className="mt-1.5 text-sm text-notion-muted dark:text-notion-muted-dark leading-snug">
-                Hide this encrypted note inside a picture using LSB steganography.
+                Create an image that secretly contains your note.
               </p>
 
               <div className="mt-6 space-y-4">
-                <button onClick={handleRandom} className="btn-notion-primary w-full">
-                  <RefreshCw className="h-4 w-4" />
-                  Use Random Image
-                </button>
+                <div className="flex rounded-xl bg-gray-100 dark:bg-white/10 p-1">
+                  <button
+                    onClick={() => setUseDefaultPassword(true)}
+                    className={`flex-1 rounded-lg py-2 px-3 text-sm font-medium transition-all duration-200 ${
+                      useDefaultPassword
+                        ? 'bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Note password
+                  </button>
+                  <button
+                    onClick={() => setUseDefaultPassword(false)}
+                    className={`flex-1 rounded-lg py-2 px-3 text-sm font-medium transition-all duration-200 ${
+                      !useDefaultPassword
+                        ? 'bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Custom password
+                  </button>
+                </div>
 
-                <p className="text-xs text-notion-muted dark:text-notion-muted-dark leading-relaxed">
-                  Your encrypted note will be embedded into the image's pixels using LSB
-                  steganography. The resulting PNG can be decoded on the landing page by
-                  uploading it.
-                </p>
+                {!useDefaultPassword && (
+                  <input
+                    type="password"
+                    className="input-notion w-full"
+                    placeholder="Enter a password"
+                    value={stegoPassword}
+                    onChange={(e) => setStegoPassword(e.target.value)}
+                    autoFocus
+                  />
+                )}
+
+                <button onClick={handleRandom} className="btn-notion-primary w-full">
+                  <Image className="h-4 w-4" />
+                  Generate
+                </button>
               </div>
             </div>
             <div className="border-t px-5 sm:px-7 py-4 flex justify-end dark:border-notion-border-dark">
@@ -134,14 +172,14 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
         {state === 'fetching' && (
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <Loader className="h-6 w-6 animate-spin text-notion-muted dark:text-notion-muted-dark" />
-            <p className="text-sm">Fetching cover image...</p>
+            <p className="text-sm">Finding a cover image...</p>
           </div>
         )}
 
         {state === 'embedding' && (
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <Loader className="h-6 w-6 animate-spin text-notion-muted dark:text-notion-muted-dark" />
-            <p className="text-sm">Embedding encrypted note into image...</p>
+            <p className="text-sm">Hiding your note...</p>
           </div>
         )}
 
@@ -150,7 +188,7 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
             <div className="p-5 sm:p-7 pb-6">
               <div className="flex items-start gap-2">
                 <CircleCheck className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                <h2 className="text-lg font-semibold tracking-tight flex-1">Steganographic image generated!</h2>
+                <h2 className="text-lg font-semibold tracking-tight flex-1">Image ready</h2>
                 <button onClick={onClose} className="btn-notion p-2 -m-2 shrink-0" title="Close" aria-label="Close">
                   <X className="h-5 w-5" />
                 </button>
@@ -176,18 +214,16 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
                 <button onClick={handleDownload} className="btn-notion-primary flex-1">
                   <Download className="h-4 w-4" />
-                  Download PNG
+                  Download
                 </button>
                 <button onClick={handleRandom} className="btn-notion flex-1">
                   <RefreshCw className="h-4 w-4" />
-                  New Image
+                  Try another
                 </button>
               </div>
 
               <p className="mt-4 text-xs text-notion-muted dark:text-notion-muted-dark leading-relaxed">
-                This image contains your encrypted note. Share it with someone who has the
-                password. Keep the original PNG — do not compress, re-encode, or convert it
-                (e.g., to JPEG), as that destroys the hidden note.
+                Share as a document to keep the original PNG and preserve the hidden note.
               </p>
             </div>
           </>
