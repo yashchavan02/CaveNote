@@ -8,6 +8,7 @@
   }
   body {
     @apply antialiased bg-notion-bg text-notion-text dark:bg-notion-bg-dark dark:text-notion-text-dark;
+    overflow-x: hidden;
   }
   :root {
     --scrollbar-track: #EFEFEF;
