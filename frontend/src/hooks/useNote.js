@@ -42,6 +42,7 @@ export function useNote() {
   }, [syncing, status, noteName])
 
   useEffect(() => {
+    if (!noteName) return
     let cancelled = false
     ;(async () => {
       try {
