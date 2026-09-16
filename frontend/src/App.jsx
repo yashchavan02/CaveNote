@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useThemeStore } from './hooks/useTheme'
+import { syncPendingNotes } from './api/noteApi'
 import Landing from './components/Landing'
 
 const Editor = lazy(() => import('./components/Editor'))
@@ -25,6 +26,13 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
   }, [dark])
+
+  useEffect(() => {
+    const run = () => syncPendingNotes()
+    run()
+    window.addEventListener('online', run)
+    return () => window.removeEventListener('online', run)
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Sun, Moon, ImagePlus, FileImage, CircleAlert, Loader,
@@ -8,11 +8,21 @@ import { useThemeStore } from '../hooks/useTheme'
 import { extractNoteFromImage } from '../utils/steganography'
 import { decryptStegano } from '../hooks/useCrypto'
 import { loadImage } from '../api/imageApi'
+import { getRecentNotes } from '../db/noteStore'
 
 export default function Landing() {
   const [name, setName] = useState('')
   const navigate = useNavigate()
   const { dark, toggle } = useThemeStore()
+  const [recent, setRecent] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    getRecentNotes()
+      .then((notes) => { if (!cancelled) setRecent(notes) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   const [decodeState, setDecodeState] = useState('idle')
   const [isDragging, setIsDragging] = useState(false)
@@ -179,6 +189,23 @@ export default function Landing() {
                   Open by URL
                 </span>
               </div>
+
+              {recent.length > 0 && (
+                <div className="mt-8">
+                  <p className="text-xs font-medium text-notion-muted dark:text-notion-muted-dark">Recent notes</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {recent.map((n) => (
+                      <button
+                        key={n.note_path}
+                        onClick={() => navigate(`/${n.note_path}`)}
+                        className="rounded-lg border border-notion-border px-3 py-1.5 text-sm text-notion-muted hover:bg-notion-hover hover:text-notion-text dark:border-notion-border-dark dark:text-notion-muted-dark dark:hover:bg-notion-hover-dark dark:hover:text-notion-text-dark transition-colors"
+                      >
+                        {n.note_path}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col justify-center min-w-0">

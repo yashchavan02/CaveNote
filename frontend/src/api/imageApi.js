@@ -53,6 +53,9 @@ function pickBundledCover() {
 // 2. Picsum (network, no key needed)
 // 3. Bundled default image from src/assets/ (offline, always works)
 export async function loadRandomImage(query = 'nature landscape') {
+  if (!navigator.onLine && bundledCovers.length) {
+    return loadImage(bundledCovers[Math.floor(Math.random() * bundledCovers.length)])
+  }
   const candidates = []
   if (PEXELS_API_KEY) {
     try {

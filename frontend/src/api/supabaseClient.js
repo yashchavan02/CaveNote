@@ -9,4 +9,9 @@ if (!url || !anonKey) {
   )
 }
 
-export const supabase = createClient(url, anonKey)
+export const supabase = createClient(url, anonKey, {
+  db: {
+    retry: false,
+    timeout: 5000,
+  },
+})

@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getNote, saveNote, deleteNote } from '../api/noteApi'
 import { encrypt, decrypt } from './useCrypto'
+import { useSyncStore } from './useSync'
+import { getCachedRow, SYNCED_TEXT } from '../db/noteStore'
 
 export function useNote() {
   const { noteName } = useParams()
@@ -17,6 +19,27 @@ export function useNote() {
   const [charCount, setCharCount] = useState(0)
   const [wordCount, setWordCount] = useState(0)
   const [encryptedData, setEncryptedData] = useState(null)
+  const syncing = useSyncStore((s) => s.syncing)
+  const prevSyncing = useRef(false)
+
+  useEffect(() => {
+    if (!prevSyncing.current || syncing) {
+      prevSyncing.current = syncing
+      return
+    }
+    prevSyncing.current = false
+    if (status !== 'queued') return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const row = await getCachedRow(noteName)
+        if (!cancelled && row && row.synced === SYNCED_TEXT) setStatus('saved')
+      } catch {
+        // keep showing 'Saved locally'
+      }
+    })()
+    return () => { cancelled = true }
+  }, [syncing, status, noteName])
 
   useEffect(() => {
     let cancelled = false
@@ -38,6 +61,10 @@ export function useNote() {
               setPlaintext(prefill)
               setStatus('unsaved')
             }
+          } else if (err.code === 'OFFLINE') {
+            setError(err.message)
+          } else {
+            setError('Failed to load this note.')
           }
         }
       }
@@ -73,11 +100,11 @@ export function useNote() {
     setError(null)
     try {
       const payload = await encrypt(plaintext, pw)
-      await saveNote(noteName, payload)
+      const result = await saveNote(noteName, payload)
       setPassword(pw)
       setExists(true)
       setShowSavePrompt(false)
-      setStatus('saved')
+      setStatus(result.status)
       return true
     } catch {
       setStatus('error')

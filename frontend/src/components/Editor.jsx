@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sun, Moon, Copy, Check, Minus, Plus, ArrowLeft } from 'lucide-react'
+import { Sun, Moon, Copy, Check, Minus, Plus, ArrowLeft, CircleAlert } from 'lucide-react'
 import { useNote } from '../hooks/useNote'
 import { useFontSizeStore } from '../hooks/useFontSize'
 import { useThemeStore } from '../hooks/useTheme'
 import PasswordModal from './PasswordModal'
 import TopBar from './TopBar'
 import SteganoModal from './SteganoModal'
+import DownloadMenu from './DownloadMenu'
 
 export default function Editor() {
   const { size, increase, decrease, MIN, MAX } = useFontSizeStore()
@@ -75,7 +76,7 @@ export default function Editor() {
     }
   }
 
-  const showLoading = locked && exists === null
+  const showLoading = locked && exists === null && !error
   const showDecryptModal = locked && exists === true
 
   if (decodedView) {
@@ -104,6 +105,7 @@ export default function Editor() {
                 {decodedCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 <span className="hidden sm:inline text-sm">{decodedCopied ? 'Copied' : 'Copy'}</span>
               </button>
+              <DownloadMenu content={decodedText} label="Download" className="px-3 py-2.5 gap-1.5" />
               <div className="flex items-center rounded-lg border border-notion-border dark:border-notion-border-dark overflow-hidden">
                 <button onClick={decrease} disabled={size <= MIN} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Decrease font size">
                   <Minus className="h-3.5 w-3.5" />
@@ -199,6 +201,16 @@ export default function Editor() {
           {showLoading && (
             <div className="flex flex-1 items-center justify-center">
               <div className="h-5 w-5 animate-spin rounded-full border border-notion-border border-t-notion-text dark:border-notion-border-dark dark:border-t-notion-text-dark" />
+            </div>
+          )}
+
+          {locked && error && !showLoading && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+              <CircleAlert className="h-6 w-6 text-red-500" />
+              <p className="max-w-sm text-sm text-notion-muted dark:text-notion-muted-dark leading-snug">{error}</p>
+              <button onClick={() => navigate('/', { replace: true })} className="btn-notion">
+                Back to home
+              </button>
             </div>
           )}
 
