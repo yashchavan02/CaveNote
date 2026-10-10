@@ -4,11 +4,13 @@ import { getNote, saveNote, deleteNote } from '../api/noteApi'
 import { encrypt, decrypt } from './useCrypto'
 import { useSyncStore } from './useSync'
 import { getCachedRow, SYNCED_TEXT } from '../db/noteStore'
+import { emptyDocument, parseDocument, serializeDocument, sanitizeDocument, createPage, MAX_PAGES } from '../utils/document'
 
 export function useNote() {
   const { noteName } = useParams()
   const navigate = useNavigate()
-  const [plaintext, setPlaintext] = useState('')
+  const [document, setDocument] = useState(() => emptyDocument())
+  const [activePageId, setActivePageId] = useState(null)
   const [password, setPassword] = useState('')
   const [locked, setLocked] = useState(true)
   const [exists, setExists] = useState(null)
@@ -21,6 +23,9 @@ export function useNote() {
   const [encryptedData, setEncryptedData] = useState(null)
   const syncing = useSyncStore((s) => s.syncing)
   const prevSyncing = useRef(false)
+
+  const activePage = document.pages.find((p) => p.id === activePageId) || document.pages[0]
+  const plaintext = activePage ? activePage.content : ''
 
   useEffect(() => {
     if (!prevSyncing.current || syncing) {
@@ -59,8 +64,12 @@ export function useNote() {
             const prefill = localStorage.getItem('cavenote-prefill')
             if (prefill) {
               localStorage.removeItem('cavenote-prefill')
-              setPlaintext(prefill)
+              const doc = parseDocument(prefill)
+              setDocument(doc)
+              setActivePageId(doc.pages[0].id)
               setStatus('unsaved')
+            } else {
+              setActivePageId(document.pages[0].id)
             }
           } else if (err.code === 'OFFLINE') {
             setError(err.message)
@@ -88,8 +97,10 @@ export function useNote() {
         encryptedData.salt,
         pw
       )
+      const doc = parseDocument(text)
+      setDocument(doc)
+      setActivePageId(doc.pages[0].id)
       setPassword(pw)
-      setPlaintext(text)
       setLocked(false)
     } catch {
       throw new Error('Wrong password')
@@ -100,7 +111,7 @@ export function useNote() {
     setStatus('saving')
     setError(null)
     try {
-      const payload = await encrypt(plaintext, pw)
+      const payload = await encrypt(serializeDocument(sanitizeDocument(document)), pw)
       const result = await saveNote(noteName, payload)
       setPassword(pw)
       setExists(true)
@@ -112,7 +123,7 @@ export function useNote() {
       setError('Failed to save')
       return false
     }
-  }, [plaintext, noteName])
+  }, [document, noteName])
 
   const handleSave = useCallback(() => {
     if (password) {
@@ -133,21 +144,58 @@ export function useNote() {
   }, [saveEncrypted])
 
   const handleLock = useCallback(() => {
-    setPlaintext('')
+    setDocument(emptyDocument())
+    setActivePageId(null)
     setPassword('')
     setLocked(true)
     setStatus('idle')
   }, [])
 
   const updatePlaintext = useCallback((text) => {
-    setPlaintext(text)
+    setDocument((doc) => {
+      const targetId = activePageId || doc.pages[0].id
+      return {
+        ...doc,
+        pages: doc.pages.map((p) => (p.id === targetId ? { ...p, content: text } : p)),
+      }
+    })
     setStatus('unsaved')
+  }, [activePageId])
+
+  const addPage = useCallback(() => {
+    if (document.pages.length >= MAX_PAGES) return
+    const page = createPage()
+    setDocument((doc) => ({ ...doc, pages: [...doc.pages, page] }))
+    setActivePageId(page.id)
+    setStatus('unsaved')
+  }, [document.pages.length])
+
+  const removePage = useCallback((id) => {
+    if (document.pages.length <= 1) return
+    const index = document.pages.findIndex((p) => p.id === id)
+    const pages = document.pages.filter((p) => p.id !== id)
+    setDocument({ ...document, pages })
+    if (activePageId === id) {
+      const neighbor = pages[Math.min(index, pages.length - 1)]
+      setActivePageId(neighbor ? neighbor.id : null)
+    }
+    setStatus('unsaved')
+  }, [document, activePageId])
+
+  const selectPage = useCallback((id) => {
+    setActivePageId(id)
   }, [])
 
   return {
     noteName,
+    document,
+    pages: document.pages,
+    activePageId,
     plaintext,
     setPlaintext: updatePlaintext,
+    addPage,
+    removePage,
+    selectPage,
     password,
     locked,
     exists,

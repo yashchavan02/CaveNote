@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sun, Moon, Copy, Check, Minus, Plus, ArrowLeft, CircleAlert } from 'lucide-react'
 import { useNote } from '../hooks/useNote'
 import { useFontSizeStore } from '../hooks/useFontSize'
 import { useThemeStore } from '../hooks/useTheme'
+import { parseDocument, serializeDocument, formatDocumentText, sanitizeDocument, MAX_PAGES } from '../utils/document'
 import PasswordModal from './PasswordModal'
 import TopBar from './TopBar'
 import SteganoModal from './SteganoModal'
-import DownloadMenu from './DownloadMenu'
+import DownloadButton from './DownloadButton'
+import PageTabs from './PageTabs'
 
 export default function Editor() {
   const { size, increase, decrease, MIN, MAX } = useFontSizeStore()
@@ -23,6 +25,9 @@ export default function Editor() {
   const textareaRef = useRef(null)
   const {
     noteName,
+    document,
+    pages,
+    activePageId,
     plaintext,
     setPlaintext,
     password,
@@ -40,7 +45,14 @@ export default function Editor() {
     saveEncrypted,
     handleDelete,
     handleLock,
+    addPage,
+    removePage,
+    selectPage,
   } = useNote()
+
+  const decodedDoc = useMemo(() => parseDocument(decodedText || ''), [decodedText])
+  const [decodedActiveId, setDecodedActiveId] = useState(() => decodedDoc.pages[0]?.id || null)
+  const decodedPage = decodedDoc.pages.find((p) => p.id === decodedActiveId) || decodedDoc.pages[0]
 
   useEffect(() => {
     if (!locked && status === 'unsaved') {
@@ -67,7 +79,7 @@ export default function Editor() {
   }, [locked, handleSave])
 
   const handleStegano = () => {
-    if (!plaintext.trim()) return
+    if (!document.pages.some((p) => p.content.trim())) return
     if (!password) {
       pendingSteganoRef.current = true
       setShowSavePrompt(true)
@@ -95,7 +107,7 @@ export default function Editor() {
             <div className="flex items-center gap-1">
               <button
                 onClick={async () => {
-                  await navigator.clipboard.writeText(decodedText || '')
+                  await navigator.clipboard.writeText(decodedPage?.content || '')
                   setDecodedCopied(true)
                   setTimeout(() => setDecodedCopied(false), 2000)
                 }}
@@ -105,7 +117,7 @@ export default function Editor() {
                 {decodedCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 <span className="hidden sm:inline text-sm">{decodedCopied ? 'Copied' : 'Copy'}</span>
               </button>
-              <DownloadMenu content={decodedText} label="Download" className="px-3 py-2.5 gap-1.5" />
+              <DownloadButton content={formatDocumentText(decodedDoc)} label="Download" className="px-3 py-2.5 gap-1.5" />
               <div className="flex items-center rounded-lg border border-notion-border dark:border-notion-border-dark overflow-hidden">
                 <button onClick={decrease} disabled={size <= MIN} className="flex items-center justify-center w-7 h-7 hover:bg-notion-hover dark:hover:bg-notion-hover-dark disabled:opacity-30 transition-colors" title="Decrease font size">
                   <Minus className="h-3.5 w-3.5" />
@@ -123,11 +135,17 @@ export default function Editor() {
           </div>
         </header>
         <main className="flex flex-1 flex-col">
-          <div className="mx-auto flex w-full max-w-notion flex-1 flex-col px-6 lg:px-12">
+          <div className="mx-auto flex w-full max-w-notion flex-1 flex-col">
+            <PageTabs
+              pages={decodedDoc.pages}
+              activePageId={decodedActiveId}
+              onSelect={setDecodedActiveId}
+              readOnly
+            />
             <textarea
               readOnly
-              value={decodedText}
-              className="w-full flex-1 resize-none border-0 bg-transparent py-6 sm:py-10 font-mono leading-relaxed outline-none"
+              value={decodedPage?.content || ''}
+              className="flex-1 resize-none border-0 bg-transparent px-6 py-6 font-mono leading-relaxed outline-none sm:py-10 lg:px-12"
               style={{ fontSize: `${size}px` }}
             />
           </div>
@@ -191,13 +209,13 @@ export default function Editor() {
       <SteganoModal
         open={showStegano}
         onClose={() => setShowStegano(false)}
-        plaintext={plaintext}
+        content={serializeDocument(sanitizeDocument(document))}
         password={password}
         noteName={noteName}
       />
 
       <main className="flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-notion flex-1 flex-col px-6 lg:px-12">
+        <div className="mx-auto flex w-full max-w-notion flex-1 flex-col">
           {showLoading && (
             <div className="flex flex-1 items-center justify-center">
               <div className="h-5 w-5 animate-spin rounded-full border border-notion-border border-t-notion-text dark:border-notion-border-dark dark:border-t-notion-text-dark" />
@@ -215,15 +233,25 @@ export default function Editor() {
           )}
 
           {!locked && (
-            <textarea
-              ref={textareaRef}
-              className="w-full flex-1 resize-none border-0 bg-transparent py-6 sm:py-10 font-mono leading-relaxed outline-none placeholder-notion-muted/50 dark:placeholder-notion-muted-dark/50"
-              style={{ fontSize: `${size}px`, fontWeight: bold ? 700 : 400 }}
-              placeholder="Start typing..."
-              value={plaintext}
-              onChange={(e) => setPlaintext(e.target.value)}
-              autoFocus
-            />
+            <div className="flex flex-1 min-h-0 flex-col">
+              <PageTabs
+                pages={pages}
+                activePageId={activePageId}
+                onSelect={selectPage}
+                onAdd={addPage}
+                onRemove={removePage}
+                maxPages={MAX_PAGES}
+              />
+              <textarea
+                ref={textareaRef}
+                className="w-full flex-1 resize-none border-0 bg-transparent px-6 py-6 font-mono leading-relaxed outline-none placeholder-notion-muted/50 dark:placeholder-notion-muted-dark/50 lg:px-12 sm:py-10"
+                style={{ fontSize: `${size}px`, fontWeight: bold ? 700 : 400 }}
+                placeholder="Start typing..."
+                value={plaintext}
+                onChange={(e) => setPlaintext(e.target.value)}
+                autoFocus
+              />
+            </div>
           )}
         </div>
       </main>

@@ -4,7 +4,7 @@ import { useThemeStore } from '../hooks/useTheme'
 import { useFontSizeStore } from '../hooks/useFontSize'
 import { useOnline } from '../hooks/useOnline'
 import { useSyncStore } from '../hooks/useSync'
-import DownloadMenu from './DownloadMenu'
+import DownloadButton from './DownloadButton'
 
 export default function TopBar({ noteName, status, onLock, onDelete, onSave, password, charCount, bold, onToggleBold, plaintext, onChangePassword, onStegano }) {
   const { dark, toggle } = useThemeStore()
@@ -45,7 +45,7 @@ export default function TopBar({ noteName, status, onLock, onDelete, onSave, pas
       <button onClick={handleCopyContent} className="btn-notion p-2.5 max-sm:p-2" title="Copy note content">
         {copied ? <Check className="h-5 w-5 max-sm:h-4 max-sm:w-4" /> : <Copy className="h-5 w-5 max-sm:h-4 max-sm:w-4" />}
       </button>
-      <DownloadMenu noteName={noteName} content={plaintext} className="p-2.5 max-sm:p-2" />
+      <DownloadButton content={plaintext} className="p-2.5 max-sm:p-2" />
       <button
         onClick={onStegano}
         disabled={!plaintext}

@@ -10,11 +10,14 @@ ciphertext.
 - **Client-side encryption** — AES-256-GCM keys derived from your password with
   600,000 PBKDF2 iterations. The password never leaves the browser.
 - **Open by URL** — any note is reachable at `/:noteName`. No registration.
+- **Multiple pages per note** — a note can hold up to **5 separate pages**
+  (tabs), each with its own content. Pages live in a single encrypted blob, so
+  nothing about the underlying storage changes.
 - **Offline support (PWA)** — notes are cached in IndexedDB and edits made while
   offline are queued and synced automatically when you reconnect.
 - **Hide a note in plain sight** — [LSB steganography](#steganography) embeds an
   encrypted note inside a PNG. Anyone can decode it with the password.
-- **Export** — download any note as `.txt` or `.pdf` (client-side, via jsPDF).
+- **Export** — download any note as `.txt` (client-side).
 - **Dark/light theme, adjustable editor font size, bold toggle.**
 - **PWA with offline asset caching** (`vite-plugin-pwa`).
 
@@ -26,7 +29,7 @@ ciphertext.
 | Data      | Supabase (managed Postgres + PostgREST REST API), IndexedDB for caching |
 | Crypto    | Web Crypto API — PBKDF2 (SHA-256) + AES-256-GCM, all in-browser      |
 | PWA       | vite-plugin-pwa (workbox)                                            |
-| Utilities | axios, jspdf, lucide-react                                           |
+| Utilities | axios, lucide-react                                                  |
 
 ## How it works
 
@@ -43,6 +46,29 @@ ciphertext.
 
 Steganographic notes use the same KDF but derive a domain-separated salt from
 `cavenote-stegano-v1` so the image password can differ from the note password.
+
+### Note documents (`src/utils/document.js`)
+
+An encrypted note stores a small JSON document rather than a raw string:
+
+```json
+{
+  "v": 1,
+  "pages": [{ "id": "…", "content": "" }]
+}
+```
+
+- `MAX_PAGES = 5`; a note always keeps at least one page.
+- `parseDocument()` accepts this format and transparently wraps legacy
+  plaintext (a raw string) into a single page, so old notes keep working
+  unchanged.
+- `sanitizeDocument()` drops whitespace-only pages before save so empty tabs
+  never persist (an all-empty note saves as one empty page to keep the
+  envelope valid).
+- `useNote.js` holds the document plus an `activePageId`; `addPage`, `removePage`
+  (with a delete-confirm modal), and tab selection are rendered by
+  `PageTabs.jsx`. Tab labels derive from the first 12 characters of the page
+  content, else "Empty page".
 
 ### Data flow (`src/api/noteApi.js`)
 
@@ -103,10 +129,12 @@ frontend/
 │  │  ├─ TopBar.jsx           # Toolbar (save, download, stegano, theme, …)
 │  │  ├─ PasswordModal.jsx    # Set / change / decrypt password modal
 │  │  ├─ SteganoModal.jsx     # Generate PNG with hidden note
-│  │  └─ DownloadMenu.jsx     # Export as .txt / .pdf
+│  │  ├─ PageTabs.jsx         # Page tabs + delete-confirm modal
+│  │  └─ DownloadButton.jsx   # Download note as .txt
 │  └─ utils/
+│     ├─ document.js          # Pages document (serialize/parse/sanitize)
 │     ├─ steganography.js     # LSB embed/extract
-│     ├─ download.js          # blob downloads, jsPDF export
+│     ├─ download.js          # blob download (.txt export)
 │     └─ randomId.js          # crypto-secure random ids
 ├─ public/                    # favicon, PWA icons, fonts
 ├─ .env.example               # Required/optional env vars

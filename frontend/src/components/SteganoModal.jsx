@@ -10,7 +10,7 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function SteganoModal({ open, onClose, plaintext, password, noteName }) {
+export default function SteganoModal({ open, onClose, content, password, noteName }) {
   const [state, setState] = useState('selecting')
   const [imageBlob, setImageBlob] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
@@ -49,7 +49,7 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
             : 'Enter a password for this image.'
         )
       }
-      const ciphertext = await encryptStegano(plaintext, effectivePw)
+      const ciphertext = await encryptStegano(content, effectivePw)
       const blob = await embedNoteInImage(imgEl, { ciphertext })
 
       const verifyUrl = URL.createObjectURL(blob)
@@ -67,13 +67,13 @@ export default function SteganoModal({ open, onClose, plaintext, password, noteN
           'Verification failed: the generated image could not be decoded. Try a different image.'
         )
       }
-      if (decrypted !== plaintext) {
+      if (decrypted !== content) {
         throw new Error('Verification failed: the note did not round-trip correctly. Try a different image.')
       }
 
       setImageBlob(blob)
       setImagePreviewUrl(URL.createObjectURL(blob))
-      setMeta({ size: blob.size, noteLength: plaintext.length })
+      setMeta({ size: blob.size, noteLength: content.length })
       setState('ready')
     } catch (err) {
       setError(err.message || 'Failed to generate image')
